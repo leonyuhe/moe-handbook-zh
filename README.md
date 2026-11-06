@@ -50,17 +50,23 @@ npm run build        # 输出到 app/dist
 
 ## 部署到 GitHub Pages
 
-仓库中的 `docs/` 是构建好的静态站点，GitHub Pages 直接以 `docs/` 为站点根目录即可。
+在线站点：<https://leonyuhe.github.io/moe-handbook-zh/>
 
-重新构建并同步到 `docs/`：
+仓库中的 `docs/` 是构建好的静态站点，`gh-pages` 分支与它保持同步，GitHub Pages 从该分支发布。
+
+重新构建并发布：
 
 ```bash
 cd app
 npm install
 npm run build:gh
+cd ..
+git add docs
+git commit -m "rebuild site"
+git subtree push --prefix docs origin gh-pages
 ```
 
-`build:gh` 会依次执行 Astro 构建、把根路径资源改写成 `/moe-handbook-zh/` 前缀，并把产物复制到 `docs/`。
+`build:gh` 会依次执行 Astro 构建、把根路径资源改写成 `/moe-handbook-zh/` 前缀，并把产物复制到 `docs/`；最后一步把 `docs/` 推到 `gh-pages` 分支。
 
 ## 目录结构
 
