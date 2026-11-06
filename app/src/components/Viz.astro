@@ -1,0 +1,58 @@
+---
+// A live gallery figure (app/public/viz, scripts/sync_gallery.sh). Its box is reserved at the size the figure
+// reports (posters/sizes.json), scaled to fit the column, so nothing shifts when it loads. The iframe mounts when the
+// figure comes within 1.5 screens and is dropped beyond 4, so a long chapter never runs dozens of figures at once.
+// A figure wider than the text column is centred on it and may cover the outline (the TOC) while it scrolls past,
+// so it shows at its own size whenever the screen has room.
+// The poster (a 2x still) only stands in without JavaScript: the live figure is smaller than its picture.
+import sizes from "../../public/viz/posters/sizes.json";
+// query (optional): extra URL params, e.g. one frame of a figure ("&stage=4&mini=1"), with its own size w x h
+const { name, height = 1000, caption, query = "", w: qw, h: qh } = Astro.props;
+const [w, h] = qw ? [qw, qh] : (sizes as Record<string, number[]>)[name] ?? [1100, height];
+---
+<figure class="viz" style={`--w:${w + 2}px`}>
+  <div class="viz-box" data-name={name} data-q={query} data-w={w} data-h={h} style={`max-width:${w + 2}px;aspect-ratio:${w + 2}/${h + 2}`}>
+    <noscript><img src={`/viz/posters/${name}.webp`} alt={name} width={w} height={h} /></noscript>
+  </div>
+  {caption && <figcaption set:html={caption} />}
+</figure>
+
+<script>
+  const fit = (box: HTMLElement) => {
+    const f = box.querySelector("iframe");
+    if (!f) return;
+    const w = +box.dataset.w! + 2, h = +box.dataset.h! + 2;
+    box.parentElement!.style.setProperty("--w", `${w}px`);
+    f.style.width = `${w}px`;
+    f.style.height = `${h}px`;
+    f.style.zoom = String(Math.min(1, box.parentElement!.clientWidth / w));
+    box.style.maxWidth = `${w}px`;
+    box.style.aspectRatio = `${w}/${h}`;
+  };
+  const mount = (box: HTMLElement) => {
+    if (box.querySelector("iframe")) return;
+    const f = document.createElement("iframe");
+    f.src = `/viz/index.html?c=${box.dataset.name}${box.dataset.q ?? ""}`;
+    f.title = box.dataset.name!;
+    f.setAttribute("scrolling", "no");
+    f.addEventListener("load", () => tell(box));
+    box.append(f);
+    fit(box);
+  };
+  // tell a figure when the reader can see it, so a looping clip starts from its beginning on arrival (main.ts)
+  const tell = (box: HTMLElement) => box.querySelector("iframe")?.contentWindow?.postMessage({ moevizVisible: box.dataset.vis === "1" }, "*");
+  const boxes = [...document.querySelectorAll<HTMLElement>(".viz-box")];
+  const near = new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && mount(e.target as HTMLElement)), { rootMargin: "150% 0px" });
+  const far = new IntersectionObserver((es) => es.forEach((e) => !e.isIntersecting && e.target.querySelector("iframe")?.remove()), { rootMargin: "400% 0px" });
+  const seen = new IntersectionObserver((es) => es.forEach((e) => { (e.target as HTMLElement).dataset.vis = e.isIntersecting ? "1" : ""; tell(e.target as HTMLElement); }), { threshold: 0.3 });
+  boxes.forEach((b) => (near.observe(b), far.observe(b), seen.observe(b)));
+  // a figure that renders at another size than it was measured at (fonts, a slider) reports it: follow
+  addEventListener("message", (e) => {
+    const d = e.data;
+    if (d && d.moevizNav) return document.getElementById("s-" + String(d.moevizNav).replace(".", "-"))?.scrollIntoView({ behavior: "smooth" }); // a click on a part of a map figure
+    if (!d || !d.moeviz) return;
+    const box = boxes.find((b) => b.querySelector("iframe")?.contentWindow === e.source);
+    if (box && (+box.dataset.w! !== d.w || +box.dataset.h! !== d.h)) (box.dataset.w = d.w), (box.dataset.h = d.h), fit(box);
+  });
+  addEventListener("resize", () => boxes.forEach(fit));
+</script>

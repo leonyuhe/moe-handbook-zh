@@ -1,0 +1,7 @@
+app/node_modules/
+app/dist/
+.npm-cache/
+work/
+serve-test/
+screenshot-*.png
+app/.astro/

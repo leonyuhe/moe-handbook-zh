@@ -1,0 +1,76 @@
+/* MoE blog look, ported from the drafting preview (moe-blogpost scripts/preview.py): the gallery's font and blue,
+   a wider reading column, sentence-case subheads, quiet callouts. Kept apart from the template files so
+   `npm run sync:template` does not overwrite it. */
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/400-italic.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/ibm-plex-sans/700.css";
+
+:root {
+  --default-font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --primary-base: #2457d6;
+  --text-color: #16181d;
+  --muted-color: #6b7079;
+  --rec-color: #0f766e;
+  --watch-color: #b91c1c;
+}
+[data-theme="dark"] {
+  --primary-base: #83b6ff;
+  --text-color: rgba(255, 255, 255, .9);
+  --muted-color: rgba(255, 255, 255, .65);
+  --rec-color: #2dd4bf;
+  --watch-color: #f87171;
+}
+html { font-size: 17px; line-height: 1.65; }
+
+.content-grid { max-width: 1340px; grid-template-columns: 250px minmax(0, 740px) 220px; }
+.wide-right { width: calc(100% + 252px); }
+
+/* subheads: sentence case, no all-caps */
+.content-grid main h4 { text-transform: none; font-size: 18px; margin-top: var(--spacing-7); }
+
+/* callouts: a thin coloured rule and a small label, as in the preview */
+.content-grid .note { border-left-width: 3px; border-radius: 3px; padding: 10px 14px; }
+.content-grid .note .note__content { font-size: 1rem; }
+.content-grid .note .note__title { font-size: 13px; letter-spacing: 0; }
+.content-grid .note.note--success { border-left-color: var(--rec-color); background: color-mix(in oklab, var(--rec-color) 6%, var(--page-bg)); }
+.content-grid .note.note--success .note__title { color: var(--rec-color); }
+.content-grid .note.note--danger { border-left-color: var(--watch-color); background: color-mix(in oklab, var(--watch-color) 6%, var(--page-bg)); }
+.content-grid .note.note--danger .note__title { color: var(--watch-color); }
+.content-grid .note.note--neutral { background: none; border-left-color: var(--border-color); padding: 4px 14px; }
+.content-grid .note.note--neutral .note__content { color: var(--muted-color); font-size: .9rem; }
+.content-grid .note.note--info { border: 1px dashed var(--muted-color); background: none; text-align: center; }
+.content-grid .note.note--info .note__content { color: var(--muted-color); font-size: .85rem; }
+
+/* footnote markers and links: plain blue, no box */
+.content-grid main a { background: none; border-bottom: 0; }
+.content-grid main a:hover { border-bottom: 1px solid color-mix(in srgb, var(--primary-color) 40%, transparent); }
+[data-footnote-ref] { margin-left: 1px; }
+
+/* foldables (Accordion): the preview's thin bordered box */
+.content-grid .accordion { border: 1px solid var(--border-color); border-radius: 3px; margin: 10px 0; }
+
+/* the TOC marks where you are like the preview's outline */
+.table-of-contents nav a.active { background: color-mix(in srgb, var(--primary-color) 12%, transparent); border-radius: 4px; text-decoration: none; }
+
+figure.viz { margin: var(--spacing-4) 0; position: relative; z-index: var(--z-elevated); background: var(--page-bg);
+  width: min(var(--w), 100vw - 32px); left: 50%; transform: translateX(-50%); }
+/* inline flag lists wrap at their spaces instead of running past the screen */
+.content-grid main :not(pre) > code { white-space: normal; overflow-wrap: anywhere; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+/* where a wide figure covers the outline, the outline fades out over 48 px instead of being cut mid-word */
+figure.viz::before, figure.viz::after { content: ""; position: absolute; top: 0; bottom: 0; width: 48px; pointer-events: none; }
+figure.viz::before { right: 100%; background: linear-gradient(to left, var(--page-bg), transparent); }
+figure.viz::after { left: 100%; background: linear-gradient(to right, var(--page-bg), transparent); }
+figure.viz .viz-box { width: 100%; overflow: hidden; background: var(--surface-bg); border-radius: 3px; }
+figure.viz .viz-box:has(iframe) { background: none; }
+figure.viz iframe { display: block; border: 0; background: #fff; }
+figure.viz .viz-box img { display: block; width: 100%; height: auto; }
+/* the gallery draws for a white page: in dark mode its figures are inverted with their hues kept, and 0.93 lands
+   their white on the page background (#0f1115) */
+[data-theme="dark"] figure.viz iframe, [data-theme="dark"] figure.viz .viz-box img { filter: invert(.93) hue-rotate(180deg); }
+/* the caption lines up with the figure's own text (its 24 px inner margin), just under its controls */
+figure.viz figcaption { font-size: 13px; font-weight: 600; color: var(--muted-color); margin-top: -12px; padding-left: 24px; }
+
+/* tablets: the TOC button sits bottom-right, off the first line of text */
+.toc-mobile-toggle.toc-mobile-toggle { top: auto; left: auto; bottom: var(--spacing-4); right: var(--spacing-4); }

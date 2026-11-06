@@ -1,0 +1,28 @@
+<div class="moe-headline">
+  <iframe title="MoE 训练终极手册：在 1,024 块 GPU 上的一个训练步" scrolling="no"></iframe>
+</div>
+<style>
+  /* wider than the article column, centred; height follows the figure (banner, then the expanded figure) */
+  .moe-headline { width: min(1280px, calc(100vw - 32px)); margin: 24px 0 0 50%; transform: translateX(-50%); }
+  .moe-headline iframe { display: block; width: 100%; height: 520px; border: 0; background: transparent; }
+</style>
+<script>
+  // follow the site's theme toggle (data-theme on <html>), not the OS setting
+  (() => {
+    const f = document.querySelector(".moe-headline iframe"), root = document.documentElement;
+    // title=0: the article title sits right above
+    const load = () => {
+      const src = "/headline-iso/index.html?title=0&theme=" + (root.dataset.theme === "dark" ? "dark" : "light");
+      if (f.getAttribute("src") !== src) f.setAttribute("src", src);
+    };
+    load();
+    new MutationObserver(load).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+  })();
+  addEventListener("message", (e) => {
+    const d = e.data;
+    if (!d || !d.moeheadline) return;
+    const f = document.querySelector(".moe-headline iframe");
+    if (!f || f.contentWindow !== e.source) return;
+    f.style.height = d.h + "px";
+  });
+</script>
